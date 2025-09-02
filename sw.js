@@ -1,22 +1,27 @@
-const CACHE_NAME = 'cuenta-os9-v1';
+const CACHE_NAME = 'cuenta-os9-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/style.css',
   '/script.js',
   '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/os9.png'
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'icons/os9.png'
 ];
 
 // Install event - caching the application shell
 self.addEventListener('install', event => {
+  self.skipWaiting(); // Hace que el nuevo service worker se active inmediatamente
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Caching app shell');
-        return cache.addAll(ASSETS_TO_CACHE);
+        return cache.addAll(ASSETS_TO_CACHE)
+          .catch(error => {
+            console.error('Error al guardar en caché:', error);
+          });
       })
   );
 });
@@ -28,11 +33,11 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cache => {
           if (cache !== CACHE_NAME) {
-            console.log('Clearing old cache');
+            console.log('Eliminando caché antigua:', cache);
             return caches.delete(cache);
           }
         })
-      );
+      ).then(() => self.clients.claim()); // Toma el control de la página inmediatamente
     })
   );
 });

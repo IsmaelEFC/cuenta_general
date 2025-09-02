@@ -270,11 +270,55 @@
         const dotacion = parseInt(datoSeccion['Dotación']) || 0;
         const formando = parseInt(datoSeccion['Forman']) || 0;
         const ausente = parseInt(datoSeccion['Falta']) || 0;
-        
         totalDotacion += dotacion;
         totalFormando += formando;
         totalAusente += ausente;
         
+        // Variables para la instalación de PWA
+let deferredPrompt;
+const installButton = document.getElementById('installButton');
+
+// Mostrar el botón de instalación solo si es compatible
+if (installButton) {
+  // Escuchar el evento beforeinstallprompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevenir que Chrome muestre el mensaje automático
+    e.preventDefault();
+    // Guardar el evento para usarlo más tarde
+    deferredPrompt = e;
+    // Mostrar el botón de instalación
+    installButton.style.display = 'flex';
+    
+    // Limpiar el evento después de usarlo
+    installButton.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        // Mostrar el mensaje de instalación
+        deferredPrompt.prompt();
+        // Esperar a que el usuario responda al mensaje
+        const { outcome } = await deferredPrompt.userChoice;
+        // Limpiar el prompt guardado
+        deferredPrompt = null;
+        // Ocultar el botón de instalación
+        installButton.style.display = 'none';
+        
+        console.log(`User response to the install prompt: ${outcome}`);
+      }
+    });
+  });
+  
+  // Ocultar el botón si la app ya está instalada
+  window.addEventListener('appinstalled', () => {
+    console.log('PWA was installed');
+    if (installButton) {
+      installButton.style.display = 'none';
+    }
+  });
+  
+  // Ocultar el botón por defecto
+  installButton.style.display = 'none';
+}
+
+// Código existente...
         // Contar ausentismo por tipo
         tiposAusencia.forEach(tipo => {
           ausentismoPorTipo[tipo] += parseInt(datoSeccion[tipo]) || 0;

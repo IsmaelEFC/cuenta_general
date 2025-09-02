@@ -2,7 +2,9 @@
   "name": "Cuenta General OS9",
   "short_name": "Cuenta OS9",
   "start_url": "/index.html",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#006341",
   "description": "Aplicación para el control de personal del Departamento de Investigación de Organizaciones Criminales",
@@ -16,7 +18,10 @@
     {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
 }

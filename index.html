@@ -24,6 +24,13 @@
         <h1>CUENTA GENERAL</h1>
         <p>Departamento Investigación de Organizaciones Criminales OS9</p>
       </div>
+      <button id="installButton" class="install-button" aria-label="Instalar aplicación" title="Instalar aplicación">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -64,13 +71,14 @@
   </div>
 
   <script src="script.js"></script>
+  <script src="pwa-install.js"></script>
   <script>
-    // Register service worker for PWA
+    // Registrar el Service Worker para PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
           .then(registration => {
-            console.log('ServiceWorker registration successful');
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
           })
           .catch(err => {
             console.error('ServiceWorker registration failed: ', err);

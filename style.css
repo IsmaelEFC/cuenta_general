@@ -78,6 +78,37 @@
     
     .header-text {
       text-align: center;
+      flex-grow: 1;
+    }
+    
+    .install-button {
+      background: var(--primary);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: white;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    
+    .install-button:hover {
+      background: #005a3c;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .install-button:active {
+      transform: translateY(0);
+    }
+    
+    .install-button svg {
+      width: 20px;
+      height: 20px;
     }
     
     .header h1 {
