@@ -3,17 +3,17 @@ function initializePWA() {
   let deferredPrompt;
   const installButton = document.getElementById('installButton');
 
-  // Ocultar el botón por defecto para que solo se muestre cuando esté disponible
+  // Ocultar el botón por defecto
   if (installButton) {
     installButton.style.display = 'none';
   }
 
-  // Escuchar el evento beforeinstallprompt
   window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevenir que el navegador muestre el mensaje por defecto
+    // Prevenir que Chrome muestre el mensaje automático
     e.preventDefault();
     // Guardar el evento para usarlo más tarde
     deferredPrompt = e;
+    
     // Mostrar el botón de instalación
     if (installButton) {
       installButton.style.display = 'flex';
@@ -38,11 +38,19 @@ function initializePWA() {
   }
 
   // Ocultar el botón si la aplicación ya está instalada
-  window.addEventListener('appinstalled', () => {
-    console.log('PWA was installed');
+  if (window.matchMedia('(display-mode: standalone)').matches) {
     if (installButton) {
       installButton.style.display = 'none';
     }
+  }
+
+  window.addEventListener('appinstalled', (evt) => {
+    console.log('PWA fue instalada');
+    if (installButton) {
+      installButton.style.display = 'none';
+    }
+    // Opcional: Mostrar mensaje de confirmación
+    alert('¡Aplicación instalada correctamente!');
   });
 }
 

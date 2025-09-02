@@ -350,7 +350,7 @@ function crearTabla(seccion, contenedor, titulo, columns) {
 
 document.addEventListener("DOMContentLoaded", () => {
   inicializarDatos();
-  const contenedor = document.getElementById("secciones-container");
+  const contenedor = document.getElementById("contenedor");
 
   secciones.forEach(sec => {
     const card = document.createElement("div");
