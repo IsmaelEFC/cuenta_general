@@ -1,18 +1,18 @@
 const secciones = [
-  "Crimen Organizado","Muertes Violentas","Alta Complejidad",
-  "Aseguramiento Evidencia","Delitos Económicos","Apoyo Operativo",
-  "Artefactos Explosivos","Invest. contra DD.HH","Análisis Criminal",
-  "Jefatura Operaciones","Ciberdelitos","Medio Ambiente",
-  "Equipo Especial","Plana Mayor","Capitanes","Tenientes"
+  "Crimen Organizado", "Muertes Violentas", "Alta Complejidad",
+  "Aseguramiento Evidencia", "Delitos Económicos", "Apoyo Operativo",
+  "Artefactos Explosivos", "Invest. contra DD.HH", "Análisis Criminal",
+  "Jefatura Operaciones", "Ciberdelitos", "Medio Ambiente",
+  "Equipo Especial", "Plana Mayor", "Capitanes", "Tenientes"
 ];
 
 const columnas = [
-  "Dotación","Forman","Falta","Servicio","Franco","Feriado","Autorizado",
-  "Permiso","Licencia","Com. Serv.","Agregado","Sin Motivo","Otros"
+  "Dotación", "Forman", "Falta", "Servicio", "Franco", "Feriado", "Autorizado",
+  "Permiso", "Licencia", "Com. Serv.", "Agregado", "Sin Motivo", "Otros"
 ];
 
-const principales = ["Dotación","Forman","Falta"];
-const camposCalculables = ["Servicio","Franco","Feriado","Autorizado","Permiso","Licencia","Com. Serv.","Agregado","Sin Motivo","Otros"];
+const principales = ["Dotación", "Forman", "Falta"];
+const camposCalculables = ["Servicio", "Franco", "Feriado", "Autorizado", "Permiso", "Licencia", "Com. Serv.", "Agregado", "Sin Motivo", "Otros"];
 
 let datos = {};
 
@@ -28,9 +28,7 @@ function actualizarFecha() {
 }
 
 function inicializarDatos() {
-  // Verificar si es un nuevo día
   if (esNuevoDia()) {
-    // Limpiar datos del día anterior
     localStorage.removeItem("cuentaDiaria");
     datos = {};
   }
@@ -44,8 +42,7 @@ function inicializarDatos() {
       datos = {};
     }
   }
-  
-  // Inicializar estructura de datos si está vacía
+
   secciones.forEach(seccion => {
     if (!datos[seccion]) {
       datos[seccion] = {};
@@ -56,68 +53,63 @@ function inicializarDatos() {
       }
     });
   });
-
-  // Actualizar la fecha del último acceso
   actualizarFecha();
 }
 
 function guardar(seccion, columna, valor) {
   if (!datos[seccion]) datos[seccion] = {};
-  
+
   const numValor = parseInt(valor) || 0;
-  
+
   if (camposCalculables.includes(columna)) {
     const valorAnterior = parseInt(datos[seccion][columna]) || 0;
     const diferencia = numValor - valorAnterior;
-    
+
     datos[seccion][columna] = numValor;
-    
+
     const formanActual = parseInt(datos[seccion]['Forman']) || 0;
     const faltaActual = parseInt(datos[seccion]['Falta']) || 0;
-    
+
     const nuevoForman = Math.max(0, formanActual - diferencia);
     const nuevaFalta = faltaActual + diferencia;
-    
+
     datos[seccion]['Forman'] = nuevoForman;
     datos[seccion]['Falta'] = nuevaFalta;
-    
+
     const formanInput = document.querySelector(`input[data-seccion="${seccion}"][data-columna="Forman"]`);
     const faltaInput = document.querySelector(`input[data-seccion="${seccion}"][data-columna="Falta"]`);
-    
+
     if (formanInput) formanInput.value = nuevoForman;
     if (faltaInput) faltaInput.value = nuevaFalta;
-    
+
     localStorage.setItem("cuentaDiaria", JSON.stringify(datos));
     actualizarTotalSeccion(seccion);
     actualizarTotalGeneral();
-  }
-  else if (columna === 'Dotación') {
+  } else if (columna === 'Dotación') {
     datos[seccion][columna] = numValor;
     const forman = parseInt(datos[seccion]['Forman']) || 0;
     const falta = Math.max(0, numValor - forman);
     datos[seccion]['Falta'] = falta;
-    
+
     const faltaInput = document.querySelector(`input[data-seccion="${seccion}"][data-columna="Falta"]`);
     if (faltaInput) faltaInput.value = falta;
-    
+
     localStorage.setItem("cuentaDiaria", JSON.stringify(datos));
     actualizarTotalSeccion(seccion);
     actualizarTotalGeneral();
-  } 
-  else if (columna === 'Forman') {
+  } else if (columna === 'Forman') {
     datos[seccion][columna] = numValor;
     const dotacion = parseInt(datos[seccion]['Dotación']) || 0;
     const falta = Math.max(0, dotacion - numValor);
     datos[seccion]['Falta'] = falta;
-    
+
     const faltaInput = document.querySelector(`input[data-seccion="${seccion}"][data-columna="Falta"]`);
     if (faltaInput) faltaInput.value = falta;
-    
+
     localStorage.setItem("cuentaDiaria", JSON.stringify(datos));
     actualizarTotalSeccion(seccion);
     actualizarTotalGeneral();
-  }
-  else {
+  } else {
     datos[seccion][columna] = numValor;
     localStorage.setItem("cuentaDiaria", JSON.stringify(datos));
   }
@@ -133,13 +125,11 @@ function actualizarTotalSeccion(seccion) {
 
 function actualizarTotalGeneral() {
   let totalGeneral = 0;
-  
   secciones.forEach(sec => {
     if (datos[sec]) {
       totalGeneral += parseInt(datos[sec]['Forman']) || 0;
     }
   });
-  
   const elementoTotal = document.getElementById("totalGeneral");
   if (elementoTotal) {
     elementoTotal.innerText = totalGeneral;
@@ -155,43 +145,30 @@ function actualizarTotales() {
 
 function resetear() {
   if (confirm("¿Seguro que deseas borrar todos los datos del día actual?")) {
-    // Limpiar completamente datos y localStorage
     datos = {};
     localStorage.removeItem("cuentaDiaria");
-    
-    // Inicializar estructura vacía sin valores
     secciones.forEach(seccion => {
       datos[seccion] = {};
       columnas.forEach(col => {
         datos[seccion][col] = '';
       });
     });
-    
-    // Limpiar todos los inputs en el DOM
     const inputs = document.querySelectorAll('.input-control');
     inputs.forEach(input => {
       input.value = '';
       input.value = 0;
     });
-    
-    // Limpiar totales de secciones
     secciones.forEach(seccion => {
       const spanTotal = document.getElementById(`total-${seccion}`);
       if (spanTotal) {
         spanTotal.innerText = 0;
       }
     });
-    
-    // Limpiar total general
     const elementoTotal = document.getElementById("totalGeneral");
     if (elementoTotal) {
       elementoTotal.innerText = 0;
     }
-    
-    // Actualizar la fecha para evitar que se reinicie automáticamente
     actualizarFecha();
-    
-    // Mostrar confirmación
     alert("✅ Datos reiniciados correctamente");
   }
 }
@@ -199,12 +176,10 @@ function resetear() {
 function crearInput(seccion, columna) {
   const div = document.createElement("div");
   div.className = "input-field";
-  
   const valor = datos[seccion]?.[columna] || '';
   const esCalculado = columna === 'Falta';
   const readonlyAttr = esCalculado ? 'readonly' : '';
   const readonlyClass = esCalculado ? 'readonly' : '';
-  
   div.innerHTML = `
     <div class="input-label">${columna}</div>
     <input type="number" 
@@ -217,7 +192,6 @@ function crearInput(seccion, columna) {
            ${readonlyAttr}
            onchange="guardar('${seccion}','${columna}',this.value)" />
   `;
-  
   return div;
 }
 
@@ -228,7 +202,6 @@ function crearInputs(seccion, columnas, contenedor) {
   });
 }
 
-// Funciones del Informe
 function abrirInforme() {
   generarInforme();
   document.getElementById('modalInforme').style.display = 'block';
@@ -240,7 +213,7 @@ function cerrarInforme() {
 
 function generarInforme() {
   const ahora = new Date();
-  document.getElementById('fechaInforme').textContent = 
+  document.getElementById('fechaInforme').textContent =
     ahora.toLocaleDateString('es-CL', {
       weekday: 'long',
       year: 'numeric',
@@ -254,26 +227,23 @@ function generarInforme() {
   let totalFormando = 0;
   let totalAusente = 0;
   let ausentismoPorTipo = {};
-  
-  // Inicializar contadores
-  const tiposAusencia = ["Servicio","Franco","Feriado","Autorizado","Permiso","Licencia","Com. Serv.","Agregado","Sin Motivo","Otros"];
+
+  const tiposAusencia = ["Servicio", "Franco", "Feriado", "Autorizado", "Permiso", "Licencia", "Com. Serv.", "Agregado", "Sin Motivo", "Otros"];
   tiposAusencia.forEach(tipo => {
     ausentismoPorTipo[tipo] = 0;
   });
 
   const datosDetalle = [];
-  
+
   secciones.forEach(seccion => {
     const datoSeccion = datos[seccion] || {};
-    
     const dotacion = parseInt(datoSeccion['Dotación']) || 0;
     const formando = parseInt(datoSeccion['Forman']) || 0;
     const ausente = parseInt(datoSeccion['Falta']) || 0;
     totalDotacion += dotacion;
     totalFormando += formando;
     totalAusente += ausente;
-    
-    // Contar ausentismo por tipo
+
     tiposAusencia.forEach(tipo => {
       ausentismoPorTipo[tipo] += parseInt(datoSeccion[tipo]) || 0;
     });
@@ -291,10 +261,8 @@ function generarInforme() {
     datosDetalle.push({ seccion, dotacion, formando, ausente, porcentajeOperativo: porcentajeOperativo.toFixed(1), estado, statusClass });
   });
 
-  // Calcular porcentaje general
   const porcentajeGeneral = totalDotacion > 0 ? (totalFormando / totalDotacion * 100) : 0;
 
-  // Generar HTML del informe
   let htmlInforme = `
     <div class="informe-resumen">
       <div class="stat-card">
@@ -387,12 +355,12 @@ document.addEventListener("DOMContentLoaded", () => {
   secciones.forEach(sec => {
     const card = document.createElement("div");
     card.className = "section-card";
-    
+
     const title = document.createElement("h2");
     title.className = "section-title";
     title.textContent = sec;
     card.appendChild(title);
-    
+
     const mainGrid = document.createElement("div");
     mainGrid.className = "input-grid main-grid";
     crearInputs(sec, principales, mainGrid);
@@ -401,7 +369,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const extras = columnas.filter(c => !principales.includes(c));
     const details = document.createElement("details");
     details.className = "collapsible";
-    
+
     const summary = document.createElement("summary");
     summary.className = "collapsible-header";
     summary.textContent = "Ver campos adicionales";
@@ -426,10 +394,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     contenedor.appendChild(card);
   });
-  
   actualizarTotales();
 
   document.querySelector('.reset-btn').onclick = resetear;
   document.querySelector('.report-btn').onclick = abrirInforme;
-
 });
