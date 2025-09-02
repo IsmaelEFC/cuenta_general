@@ -1,13 +1,14 @@
-const CACHE_NAME = 'cuenta-os9-v2';
+const CACHE_NAME = 'cuenta-os9-v3';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
-  '/manifest.json',
-  'icons/icon-192.png',
-  'icons/icon-512.png',
-  'icons/os9.png'
+  './',
+  './index.html',
+  './style.css',
+  './script.js',
+  './pwa-install.js',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/os9.png'
 ];
 
 // Install event - caching the application shell
