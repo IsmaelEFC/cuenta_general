@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#006341" />
+  <meta name="description" content="Aplicación para el control de personal del Departamento de Investigación de Organizaciones Criminales" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="Cuenta OS9" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="shortcut icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192" />
+</head>
+<body>
+  <header class="header">
+    <div class="container header-content">
+      <div class="logo-container">
+        <img src="icons/os9.png" alt="Logo OS9" class="logo">
+      </div>
+      <div class="header-text">
+        <h1>CUENTA GENERAL</h1>
+        <p>Departamento Investigación de Organizaciones Criminales OS9</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="container" id="contenedor">
+      <!-- Cards will be generated here -->
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="total-general">
+        👥 Total Formando: <span id="totalGeneral">0</span>
+      </div>
+      <div class="button-group">
+        <button class="reset-btn" onclick="resetear()">
+          🔄 Reiniciar Día
+        </button>
+        <button class="report-btn" onclick="abrirInforme()">
+          📊 Generar Informe Final
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal del Informe -->
+  <div id="modalInforme" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="close" onclick="cerrarInforme()">&times;</span>
+        <h2>📊 INFORME FINAL DE PERSONAL</h2>
+        <p class="fecha-informe">Reporte generado el: <span id="fechaInforme"></span></p>
+      </div>
+      <div class="modal-body" id="contenidoInforme">
+        <!-- Contenido del informe se genera aquí -->
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Register service worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful');
+          })
+          .catch(err => {
+            console.error('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
