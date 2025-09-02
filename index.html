@@ -78,8 +78,11 @@
     // Registrar el Service Worker para PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        // Usar ruta relativa para GitHub Pages
-        navigator.serviceWorker.register('./sw.js')
+        // Obtener la ruta base para GitHub Pages
+        const basePath = window.location.pathname.split('/').slice(0, -1).join('/');
+        const swPath = basePath ? `${basePath}/sw.js` : './sw.js';
+        
+        navigator.serviceWorker.register(swPath)
           .then(registration => {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
           })
