@@ -290,7 +290,7 @@ function generarInforme() {
     </div>
 
     <div class="informe-ausentismo">
-      <h3>Resumen de Ausentismo</h3>
+      <h3>Desglose personal faltante</h3>
       <ul>
         ${Object.keys(ausentismoPorTipo).map(tipo => `
           <li><strong>${tipo}:</strong> ${ausentismoPorTipo[tipo]}</li>
