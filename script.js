@@ -298,7 +298,7 @@ function generarInforme() {
       </ul>
     </div>
   `;
-  document.getElementById('contenidoInforme').innerHTML = htmlInforme;
+  document.getElementById('informeContenido').innerHTML = htmlInforme;
 }
 
 // Función mejorada para exportar PDF
