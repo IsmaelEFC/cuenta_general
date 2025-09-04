@@ -61,31 +61,7 @@ function guardar(seccion, columna, valor) {
 
   const numValor = parseInt(valor) || 0;
 
-  if (camposCalculables.includes(columna)) {
-    const valorAnterior = parseInt(datos[seccion][columna]) || 0;
-    const diferencia = numValor - valorAnterior;
-
-    datos[seccion][columna] = numValor;
-
-    const formanActual = parseInt(datos[seccion]['Forman']) || 0;
-    const faltaActual = parseInt(datos[seccion]['Falta']) || 0;
-
-    const nuevoForman = Math.max(0, formanActual - diferencia);
-    const nuevaFalta = faltaActual + diferencia;
-
-    datos[seccion]['Forman'] = nuevoForman;
-    datos[seccion]['Falta'] = nuevaFalta;
-
-    const formanInput = document.querySelector(`input[data-seccion="${seccion}"][data-columna="Forman"]`);
-    const faltaInput = document.querySelector(`input[data-seccion="${seccion}"][data-columna="Falta"]`);
-
-    if (formanInput) formanInput.value = nuevoForman;
-    if (faltaInput) faltaInput.value = nuevaFalta;
-
-    localStorage.setItem("cuentaDiaria", JSON.stringify(datos));
-    actualizarTotalSeccion(seccion);
-    actualizarTotalGeneral();
-  } else if (columna === 'Dotación') {
+  if (columna === 'Dotación') {
     datos[seccion][columna] = numValor;
     const forman = parseInt(datos[seccion]['Forman']) || 0;
     const falta = Math.max(0, numValor - forman);
@@ -323,6 +299,126 @@ function generarInforme() {
     </div>
   `;
   document.getElementById('contenidoInforme').innerHTML = htmlInforme;
+}
+
+// Función mejorada para exportar PDF
+function exportarPDF() {
+  const btn = document.querySelector('.export-pdf-btn');
+  const originalText = btn.innerHTML;
+  
+  // Mostrar loading
+  btn.innerHTML = '<span class="loading"></span> Generando PDF...';
+  btn.disabled = true;
+  
+  setTimeout(() => {
+    const elemento = document.getElementById('pdfContainer');
+    if (typeof window.jsPDF === 'undefined') {
+      console.error('jsPDF no está cargado correctamente');
+      console.log('window.jspdf:', window.jspdf);
+      alert('Error: No se pudo cargar la biblioteca de PDF. Por favor, recarga la página.');
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      return;
+    }
+    
+    // Hacer visible temporalmente el contenedor PDF
+    elemento.style.position = 'static';
+    elemento.style.left = 'auto';
+    elemento.style.top = 'auto';
+    elemento.style.visibility = 'visible';
+    
+    html2canvas(elemento, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      width: elemento.scrollWidth,
+      height: elemento.scrollHeight,
+      windowWidth: 800,
+      windowHeight: 1200
+    }).then(canvas => {
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new window.jsPDF('p', 'mm', 'a4');
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      
+      const ratio = pdfWidth / canvasWidth;
+      const scaledHeight = canvasHeight * ratio;
+      
+      let yPosition = 0;
+      let remainingHeight = scaledHeight;
+      
+      // Añadir páginas según sea necesario
+      while (remainingHeight > 0) {
+        if (yPosition > 0) {
+          pdf.addPage();
+        }
+        
+        const pageHeight = Math.min(pdfHeight, remainingHeight);
+        
+        pdf.addImage(
+          imgData, 
+          'JPEG', 
+          0, 
+          yPosition === 0 ? 0 : -yPosition * (pdfHeight / scaledHeight) * canvasHeight / ratio,
+          pdfWidth, 
+          scaledHeight
+        );
+        
+        yPosition += pageHeight;
+        remainingHeight -= pageHeight;
+      }
+      
+      // Ocultar nuevamente el contenedor PDF
+      elemento.style.position = 'absolute';
+      elemento.style.left = '-10000px';
+      elemento.style.top = '-10000px';
+      elemento.style.visibility = 'hidden';
+      
+      const fecha = new Date().toISOString().split('T')[0];
+      pdf.save(`Informe_Personal_OS9_${fecha}.pdf`);
+      
+      // Restaurar botón
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      
+      console.log('PDF generado exitosamente');
+      
+    }).catch(error => {
+      console.error('Error al generar PDF:', error);
+      
+      // Ocultar contenedor PDF en caso de error
+      elemento.style.position = 'absolute';
+      elemento.style.left = '-10000px';
+      elemento.style.top = '-10000px';
+      elemento.style.visibility = 'hidden';
+      
+      // Restaurar botón
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      
+      alert('Error al generar el PDF. Por favor, intenta nuevamente.');
+    });
+  }, 100);
+}
+
+// Nueva función para compartir por WhatsApp
+function compartirWhatsapp() {
+  const totalFormando = document.getElementById('totalGeneral').innerText;
+  const fecha = document.getElementById('fechaInforme').innerText;
+  const resumen = `
+📊 Reporte de Personal OS9
+🗓️ ${fecha}
+👥 Total de personal formando: ${totalFormando}
+
+*Puedes generar un informe detallado en la aplicación.*
+  `;
+  
+  const url = `https://wa.me/?text=${encodeURIComponent(resumen)}`;
+  window.open(url, '_blank');
 }
 
 function crearTabla(seccion, contenedor, titulo, columns) {

@@ -17,25 +17,24 @@ window.addEventListener('beforeinstallprompt', (e) => {
   // Mostrar el botón de instalación
   if (installButton) {
     installButton.style.display = 'flex';
-  }
-  });
-
-// Configurar el evento de clic del botón
-if (installButton) {
-  installButton.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      // Mostrar el prompt de instalación
-      deferredPrompt.prompt();
-      // Esperar a que el usuario responda al prompt
-      const { outcome } = await deferredPrompt.userChoice;
+    
+    // Configurar el evento de clic del botón
+    installButton.onclick = async () => {
+      if (deferredPrompt) {
+        // Mostrar el prompt de instalación
+        deferredPrompt.prompt();
+        // Esperar a que el usuario responda al prompt
+        const { outcome } = await deferredPrompt.userChoice;
         console.log(`User response to the install prompt: ${outcome}`);
         // Limpiar el prompt guardado
         deferredPrompt = null;
-        // Ocultar el botón de instalación, ya que la aplicación se está instalando
+        // Ocultar el botón de instalación
         installButton.style.display = 'none';
       }
-    });
+    };
   }
+});
+
 
 // Ocultar el botón si la aplicación ya está instalada
 function hideInstallButton() {
