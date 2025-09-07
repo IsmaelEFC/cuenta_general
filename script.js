@@ -240,28 +240,29 @@ function generarInforme() {
   const porcentajeGeneral = totalDotacion > 0 ? (totalFormando / totalDotacion * 100) : 0;
 
   let htmlInforme = `
-    <div class="informe-resumen">
-      <div class="stat-card">
-        <div class="stat-number">${totalDotacion}</div>
-        <div class="stat-label">Total Dotación</div>
+    <div class="informe-contenedor">
+      <div class="informe-resumen">
+        <div class="stat-card">
+          <div class="stat-number">${totalDotacion}</div>
+          <div class="stat-label">Total Dotación</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" style="color: var(--success);">${totalFormando}</div>
+          <div class="stat-label">Personal Formando</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" style="color: var(--danger);">${totalAusente}</div>
+          <div class="stat-label">Personal Ausente</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" style="color: var(--primary);">${porcentajeGeneral.toFixed(1)}%</div>
+          <div class="stat-label">Efectividad Operacional</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-number" style="color: var(--success);">${totalFormando}</div>
-        <div class="stat-label">Personal Formando</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number" style="color: var(--danger);">${totalAusente}</div>
-        <div class="stat-label">Personal Ausente</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number" style="color: var(--primary);">${porcentajeGeneral.toFixed(1)}%</div>
-        <div class="stat-label">Efectividad Operacional</div>
-      </div>
-    </div>
-    
-    <div class="informe-detalle">
-      <div class="card-detail">
-        <h3>Detalle por Secciones</h3>
+      
+      <div class="informe-detalle">
+        <div class="card-detail">
+          <h3>Detalle por Secciones</h3>
         <table>
           <thead>
             <tr>
@@ -285,19 +286,19 @@ function generarInforme() {
               </tr>
             `).join('')}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
-    </div>
 
-    <div class="informe-ausentismo">
+      <div class="informe-ausentismo">
       <h3>Desglose personal faltante</h3>
       <ul>
         ${Object.keys(ausentismoPorTipo).map(tipo => `
           <li><strong>${tipo}:</strong> ${ausentismoPorTipo[tipo]}</li>
         `).join('')}
-      </ul>
-    </div>
-  `;
+        </ul>
+      </div>
+    </div>`;
   document.getElementById('informeContenido').innerHTML = htmlInforme;
 }
 
@@ -593,9 +594,71 @@ function crearTabla(seccion, contenedor, titulo, columns) {
   contenedor.appendChild(table);
 }
 
+// Función para inicializar la aplicación
 document.addEventListener("DOMContentLoaded", () => {
   inicializarDatos();
   const contenedor = document.getElementById("contenedor");
+  
+  // Configurar el scroll horizontal para las tablas
+  function setupHorizontalScroll() {
+    const tables = document.querySelectorAll('.informe-detalle');
+    tables.forEach(table => {
+      // Asegurar que el contenedor de la tabla tenga el ancho correcto
+      const container = table.closest('.card-detail');
+      if (container) {
+        container.style.overflowX = 'auto';
+        container.style.WebkitOverflowScrolling = 'touch';
+        container.style.overscrollBehaviorX = 'contain';
+      }
+
+      // Configurar la tabla en sí
+      table.style.minWidth = '100%';
+      table.style.width = 'auto';
+      table.style.tableLayout = 'auto';
+      
+      // Forzar el repintado para asegurar que el scroll funcione
+      table.style.display = 'none';
+      table.offsetHeight; // Trigger reflow
+      table.style.display = 'table';
+      
+      // Asegurar que el contenedor tenga el ancho correcto
+      if (container) {
+        container.scrollLeft = 0;
+      }
+    });
+  }
+  
+  // Manejador del botón de generar informe
+  document.getElementById('generar-informe').addEventListener('click', function() {
+    // Mostrar el modal
+    document.getElementById('modalInforme').style.display = 'block';
+    // Generar el contenido del informe
+    generarInforme();
+    // Configurar el scroll después de un pequeño retraso
+    setTimeout(setupHorizontalScroll, 100);
+  });
+  
+  // Cerrar el modal al hacer clic en la X
+  document.querySelector('.close').addEventListener('click', function() {
+    document.getElementById('modalInforme').style.display = 'none';
+  });
+  
+  // Cerrar el modal al hacer clic fuera del contenido
+  window.addEventListener('click', function(event) {
+    const modal = document.getElementById('modalInforme');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+  
+  // Configurar botón de exportar a PDF
+  document.getElementById('exportar-pdf').addEventListener('click', exportarPDF);
+  
+  // Configurar botón de compartir por WhatsApp
+  document.getElementById('compartir-whatsapp').addEventListener('click', compartirWhatsapp);
+  
+  // Configurar botón de reinicio
+  document.getElementById('resetear').addEventListener('click', resetear);
 
   secciones.forEach(sec => {
     const card = document.createElement("div");
