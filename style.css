@@ -1564,42 +1564,99 @@ details summary::-webkit-details-marker {
     /* Estilos para tablas en el informe */
 .informe-detalle {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   margin: 1.5rem 0;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: white;
+  position: relative;
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.informe-detalle::-webkit-scrollbar {
+  height: 8px;
+}
+
+.informe-detalle::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
 }
 
 .informe-detalle table {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  min-width: 600px; /* Ancho mínimo para mantener la legibilidad */
+  table-layout: fixed;
+  min-width: 100%;
 }
 
 .informe-detalle th,
 .informe-detalle td {
-  padding: 0.75rem;
+  padding: 0.5rem;
   text-align: left;
   border-bottom: 1px solid var(--gray-200);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
 }
 
-.informe-detalle th {
+/* First column (sección) should be sticky */
+.informe-detalle th:first-child,
+.informe-detalle td:first-child {
+  position: sticky;
+  left: 0;
+  background: white;
+  z-index: 1;
+  min-width: 150px;
+  max-width: 150px;
+}
+
+/* Header row should be sticky */
+.informe-detalle thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   background-color: var(--primary);
   color: white;
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  padding: 0.75rem 0.5rem;
 }
 
-.informe-detalle tr:nth-child(even) {
+.informe-detalle tbody tr:nth-child(even) {
   background-color: var(--gray-50);
 }
 
-.informe-detalle tr:hover {
+.informe-detalle tbody tr:hover {
   background-color: var(--gray-100);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .informe-detalle {
+    margin: 1rem -1rem;
+    width: calc(100% + 2rem);
+    border-radius: 0;
+  }
+  
+  .informe-detalle th:first-child,
+  .informe-detalle td:first-child {
+    min-width: 120px;
+    max-width: 120px;
+  }
+  
+  .informe-detalle th,
+  .informe-detalle td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.85rem;
+  }
 }
 
 /* Estilos para el estado */
