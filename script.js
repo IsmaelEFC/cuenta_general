@@ -604,71 +604,64 @@ function crearTabla(seccion, contenedor, titulo, columns) {
   contenedor.appendChild(table);
 }
 
+// Función para configurar el scroll horizontal de las tablas
+function setupHorizontalScroll() {
+  const tables = document.querySelectorAll('.informe-detalle table');
+  tables.forEach(table => {
+    const container = table.closest('.informe-detalle');
+    if (container) {
+      container.style.overflowX = 'auto';
+      container.style.WebkitOverflowScrolling = 'touch';
+      container.style.overscrollBehaviorX = 'contain';
+    }
+    table.style.minWidth = '100%';
+    table.style.width = 'auto';
+    table.style.tableLayout = 'auto';
+  });
+}
+
 // Función para inicializar la aplicación
 document.addEventListener("DOMContentLoaded", () => {
   inicializarDatos();
   const contenedor = document.getElementById("contenedor");
   
-  // Configurar el scroll horizontal para las tablas
-  function setupHorizontalScroll() {
-    const tables = document.querySelectorAll('.informe-detalle');
-    tables.forEach(table => {
-      // Asegurar que el contenedor de la tabla tenga el ancho correcto
-      const container = table.closest('.card-detail');
-      if (container) {
-        container.style.overflowX = 'auto';
-        container.style.WebkitOverflowScrolling = 'touch';
-        container.style.overscrollBehaviorX = 'contain';
-      }
-
-      // Configurar la tabla en sí
-      table.style.minWidth = '100%';
-      table.style.width = 'auto';
-      table.style.tableLayout = 'auto';
-      
-      // Forzar el repintado para asegurar que el scroll funcione
-      table.style.display = 'none';
-      table.offsetHeight; // Trigger reflow
-      table.style.display = 'table';
-      
-      // Asegurar que el contenedor tenga el ancho correcto
-      if (container) {
-        container.scrollLeft = 0;
+  // Manejador del botón de generar informe
+  const generarInformeBtn = document.getElementById('generar-informe');
+  if (generarInformeBtn) {
+    generarInformeBtn.addEventListener('click', function() {
+      // Mostrar el modal
+      document.getElementById('modalInforme').style.display = 'block';
+      // Generar el contenido del informe
+      generarInforme();
+      // Configurar el scroll después de un pequeño retraso
+      setTimeout(setupHorizontalScroll, 100);
+    });
+  }
+  
+  // Cerrar el modal al hacer clic en la X
+  const closeBtn = document.querySelector('.close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', cerrarInforme);
+  }
+  
+  // Cerrar el modal al hacer clic fuera del contenido
+  const modal = document.getElementById('modalInforme');
+  if (modal) {
+    window.addEventListener('click', function(event) {
+      if (event.target === modal) {
+        cerrarInforme();
       }
     });
   }
   
-  // Manejador del botón de generar informe
-  document.getElementById('generar-informe').addEventListener('click', function() {
-    // Mostrar el modal
-    document.getElementById('modalInforme').style.display = 'block';
-    // Generar el contenido del informe
-    generarInforme();
-    // Configurar el scroll después de un pequeño retraso
-    setTimeout(setupHorizontalScroll, 100);
-  });
+  // Configurar botones
+  const exportPdfBtn = document.getElementById('exportar-pdf');
+  const whatsappBtn = document.getElementById('compartir-whatsapp');
+  const resetBtn = document.getElementById('resetear-dia');
   
-  // Cerrar el modal al hacer clic en la X
-  document.querySelector('.close').addEventListener('click', function() {
-    document.getElementById('modalInforme').style.display = 'none';
-  });
-  
-  // Cerrar el modal al hacer clic fuera del contenido
-  window.addEventListener('click', function(event) {
-    const modal = document.getElementById('modalInforme');
-    if (event.target === modal) {
-      modal.style.display = 'none';
-    }
-  });
-  
-  // Configurar botón de exportar a PDF
-  document.getElementById('exportar-pdf').addEventListener('click', exportarPDF);
-  
-  // Configurar botón de compartir por WhatsApp
-  document.getElementById('compartir-whatsapp').addEventListener('click', compartirWhatsapp);
-  
-  // Configurar botón de reinicio - Solo configuramos el evento aquí
-  // El otro evento en la línea 707 será eliminado
+  if (exportPdfBtn) exportPdfBtn.addEventListener('click', exportarPDF);
+  if (whatsappBtn) whatsappBtn.addEventListener('click', compartirWhatsapp);
+  if (resetBtn) resetBtn.addEventListener('click', resetear);
 
   secciones.forEach(sec => {
     const card = document.createElement("div");
@@ -714,6 +707,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   actualizarTotales();
 
-  // Eliminamos el duplicado del evento resetear para evitar que se llame dos veces
-  document.querySelector('.report-btn').onclick = abrirInforme;
+  // Configurar el botón de reporte
+  const reportBtn = document.querySelector('.report-btn');
+  if (reportBtn) {
+    reportBtn.onclick = abrirInforme;
+  }
 });
