@@ -312,6 +312,8 @@ function exportarPDF() {
   
   setTimeout(() => {
     const elemento = document.getElementById('pdfContainer');
+    const informeContenido = document.getElementById('informeContenido');
+    
     if (typeof window.jsPDF === 'undefined') {
       console.error('jsPDF no está cargado correctamente');
       console.log('window.jspdf:', window.jspdf);
@@ -321,58 +323,205 @@ function exportarPDF() {
       return;
     }
     
-    // Hacer visible temporalmente el contenedor PDF
+    // Copiar el contenido del informe al contenedor PDF con estilos mejorados
+    const estilos = `
+      <style>
+        .informe-pdf {
+          font-family: Arial, sans-serif;
+          max-width: 100%;
+          padding: 15px;
+        }
+        .informe-pdf h2 {
+          text-align: center;
+          color: #006341;
+          margin-bottom: 5px;
+        }
+        .fecha-pdf {
+          text-align: center;
+          color: #666;
+          margin-bottom: 15px;
+          font-size: 14px;
+        }
+        .informe-resumen {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+        .stat-card {
+          background: #f8f9fa;
+          border-radius: 8px;
+          padding: 10px;
+          text-align: center;
+        }
+        .stat-number {
+          font-size: 1.5rem;
+          font-weight: bold;
+          margin: 5px 0;
+        }
+        .stat-label {
+          font-size: 0.8rem;
+          color: #666;
+        }
+        .informe-detalle {
+          width: 100%;
+          overflow-x: auto;
+          margin: 15px 0;
+        }
+        .informe-detalle table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 12px;
+        }
+        .informe-detalle th,
+        .informe-detalle td {
+          padding: 8px;
+          text-align: left;
+          border: 1px solid #dee2e6;
+        }
+        .informe-detalle th {
+          background-color: #006341;
+          color: white;
+          font-weight: bold;
+        }
+        .informe-detalle tr:nth-child(even) {
+          background-color: #f8f9fa;
+        }
+        .informe-ausentismo {
+          margin-top: 20px;
+          page-break-inside: avoid;
+        }
+        .informe-ausentismo h3 {
+          color: #006341;
+          margin-bottom: 10px;
+          font-size: 1.1rem;
+        }
+        .ausentismo-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+        .ausentismo-item {
+          background: #f8f9fa;
+          padding: 8px;
+          border-radius: 4px;
+          font-size: 0.9rem;
+        }
+      </style>
+    `;
+
+    // Crear una versión optimizada para PDF
+    const informeHTML = informeContenido.cloneNode(true);
+    
+    // Ajustar el contenido para el PDF
+    const resumenHTML = informeHTML.querySelector('.informe-resumen')?.outerHTML || '';
+    const detalleHTML = informeHTML.querySelector('.informe-detalle')?.outerHTML || '';
+    const ausentismoItems = Array.from(informeHTML.querySelectorAll('.informe-ausentismo li'))
+      .map(li => `<div class="ausentismo-item">${li.textContent}</div>`)
+      .join('');
+    
+    // Crear el contenido del PDF con un diseño más compacto
+    elemento.innerHTML = `
+      ${estilos}
+      <div class="informe-pdf">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h2 style="margin: 0;">Cuenta General</h2>
+          <div class="fecha-pdf" style="margin: 0;">${document.getElementById('fechaInforme').textContent}</div>
+        </div>
+        ${resumenHTML}
+        <div class="informe-detalle">
+          <h3 style="margin-top: 0;">Detalle por Secciones</h3>
+          ${detalleHTML}
+        </div>
+        <div class="informe-ausentismo" style="margin-top: 15px;">
+          <h3 style="margin-bottom: 10px;">Desglose personal faltante</h3>
+          <div class="ausentismo-grid">
+            ${ausentismoItems}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Asegurar que el contenedor PDF sea visible para html2canvas
     elemento.style.position = 'static';
     elemento.style.left = 'auto';
     elemento.style.top = 'auto';
     elemento.style.visibility = 'visible';
+    elemento.style.width = '100%';
+    elemento.style.padding = '20px';
     
+    // Ajustar el tamaño del contenedor para el PDF
+    const originalWidth = elemento.style.width;
+    const originalHeight = elemento.style.height;
+    elemento.style.width = '794px'; // Ancho Legal en píxeles (215.9mm a 96 DPI)
+    elemento.style.padding = '10px 15px';
+    
+    // Calcular la altura necesaria para el contenido
+    const contentHeight = elemento.scrollHeight;
+    const maxHeight = 1800; // Altura máxima Legal en píxeles (355.6mm a 96 DPI) con margen
+    
+    // Ajustar la escala para que todo el contenido sea visible
+    const scale = Math.min(1, maxHeight / contentHeight);
+    
+    // Configurar html2canvas con las dimensiones adecuadas
     html2canvas(elemento, {
-      scale: 2,
+      scale: 2 * scale, // Ajustar escala según el factor de reducción
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
-      width: elemento.scrollWidth,
-      height: elemento.scrollHeight,
-      windowWidth: 800,
-      windowHeight: 1200
+      width: 794, // Ancho A4 en píxeles
+      height: Math.min(contentHeight * scale, maxHeight),
+      windowWidth: 794,
+      windowHeight: Math.min(contentHeight, maxHeight / scale),
+      scrollX: 0,
+      scrollY: 0,
+      logging: true
     }).then(canvas => {
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const pdf = new window.jsPDF('p', 'mm', 'a4');
+      const imgData = canvas.toDataURL('image/jpeg', 0.9);
+      // Usar tamaño de papel oficio (Legal) en lugar de A4
+      const pdf = new window.jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [215.9, 355.6] // Tamaño oficio (Legal) en mm (8.5" x 14")
+      });
       
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
+      // Obtener dimensiones de la imagen y del PDF
+      const imgProps = pdf.getImageProperties(imgData);
       
-      const ratio = pdfWidth / canvasWidth;
-      const scaledHeight = canvasHeight * ratio;
+      // Calcular dimensiones manteniendo la relación de aspecto
+      const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // Margen de 10mm cada lado
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
-      let yPosition = 0;
-      let remainingHeight = scaledHeight;
+      // Usar la altura completa de la página con márgenes
+      const pageHeight = pdf.internal.pageSize.getHeight() - 20; // Margen de 10mm arriba y abajo
       
-      // Añadir páginas según sea necesario
-      while (remainingHeight > 0) {
-        if (yPosition > 0) {
-          pdf.addPage();
-        }
-        
-        const pageHeight = Math.min(pdfHeight, remainingHeight);
-        
-        pdf.addImage(
-          imgData, 
-          'JPEG', 
-          0, 
-          yPosition === 0 ? 0 : -yPosition * (pdfHeight / scaledHeight) * canvasHeight / ratio,
-          pdfWidth, 
-          scaledHeight
-        );
-        
-        yPosition += pageHeight;
-        remainingHeight -= pageHeight;
-      }
+      // Calcular la escala para que el ancho se ajuste al PDF
+      const scale = pdfWidth / imgProps.width;
       
-      // Ocultar nuevamente el contenedor PDF
+      // Ajustar dimensiones manteniendo la relación de aspecto
+      const finalWidth = imgProps.width * scale;
+      const finalHeight = imgProps.height * scale;
+      
+      // Posicionar en la parte superior de la página
+      const x = (pdf.internal.pageSize.getWidth() - finalWidth) / 2;
+      const y = 10; // Margen superior de 10mm
+      
+      // Añadir la imagen
+      pdf.addImage(
+        imgData, 
+        'JPEG', 
+        x, 
+        y,
+        finalWidth,
+        finalHeight
+      );
+      
+      // Restaurar estilos originales
+      elemento.style.width = originalWidth;
+      elemento.style.height = originalHeight;
+      
+      // Limpiar y ocultar el contenedor PDF
+      elemento.innerHTML = '';
       elemento.style.position = 'absolute';
       elemento.style.left = '-10000px';
       elemento.style.top = '-10000px';
