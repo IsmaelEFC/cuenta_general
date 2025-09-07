@@ -224,10 +224,20 @@ function generarInforme() {
       ausentismoPorTipo[tipo] += parseInt(datoSeccion[tipo]) || 0;
     });
 
+    // Calcular el porcentaje de personal formando sobre la dotación total
     const porcentajeOperativo = dotacion > 0 ? (formando / dotacion * 100) : 0;
+    
+    // Determinar el estado basado en el porcentaje de personal formando
     let estado = 'ÓPTIMO';
     let statusClass = 'status-optimo';
-    if (porcentajeOperativo < 70) {
+    
+    if (dotacion === 0) {
+      estado = 'SIN DATOS';
+      statusClass = 'status-sin-datos';
+    } else if (formando === 0) {
+      estado = 'SIN PERSONAL';
+      statusClass = 'status-critico';
+    } else if (porcentajeOperativo < 70) {
       estado = 'CRÍTICO';
       statusClass = 'status-critico';
     } else if (porcentajeOperativo < 85) {
@@ -657,8 +667,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Configurar botón de compartir por WhatsApp
   document.getElementById('compartir-whatsapp').addEventListener('click', compartirWhatsapp);
   
-  // Configurar botón de reinicio
-  document.getElementById('resetear').addEventListener('click', resetear);
+  // Configurar botón de reinicio - Solo configuramos el evento aquí
+  // El otro evento en la línea 707 será eliminado
 
   secciones.forEach(sec => {
     const card = document.createElement("div");
@@ -704,6 +714,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   actualizarTotales();
 
-  document.querySelector('.reset-btn').onclick = resetear;
+  // Eliminamos el duplicado del evento resetear para evitar que se llame dos veces
   document.querySelector('.report-btn').onclick = abrirInforme;
 });
