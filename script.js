@@ -620,6 +620,121 @@ function setupHorizontalScroll() {
   });
 }
 
+// Helper function to calculate status based on dotacion and formando
+function calcularEstado(dotacion, formando) {
+  if (dotacion === 0) return 'Sin Datos';
+  const porcentaje = ((dotacion - formando) / dotacion) * 100;
+  if (porcentaje <= 5) return 'Óptimo';
+  if (porcentaje <= 15) return 'Aceptable';
+  return 'Crítico';
+}
+
+// Generate full text report for WhatsApp
+function generarTextoInforme() {
+  const ahora = new Date().toLocaleDateString('es-CL', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  let totalDotacion = 0;
+  let totalFormando = 0;
+  let totalAusente = 0;
+  let ausentismoPorTipo = {};
+
+  const tiposAusencia = ["Servicio", "Franco", "Feriado", "Autorizado", "Permiso", "Licencia", "Com. Serv.", "Agregado", "Sin Motivo", "Otros"];
+  tiposAusencia.forEach(tipo => {
+    ausentismoPorTipo[tipo] = 0;
+  });
+
+  secciones.forEach(seccion => {
+    const datoSeccion = datos[seccion] || {};
+    const dotacion = parseInt(datoSeccion['Dotación']) || 0;
+    const formando = parseInt(datoSeccion['Forman']) || 0;
+    const ausente = parseInt(datoSeccion['Falta']) || 0;
+    totalDotacion += dotacion;
+    totalFormando += formando;
+    totalAusente += ausente;
+
+    tiposAusencia.forEach(tipo => {
+      ausentismoPorTipo[tipo] += parseInt(datoSeccion[tipo]) || 0;
+    });
+  });
+
+  let texto = `📊 REPORTE DE PERSONAL OS9\n\n`;
+  texto += `🗓️ ${ahora}\n\n`;
+  texto += `📈 RESUMEN GENERAL:\n`;
+  texto += `👥 Total Dotación: ${totalDotacion}\n`;
+  texto += `👥 Total Formando: ${totalFormando}\n`;
+  texto += `⚠️ Total Ausente: ${totalAusente}\n`;
+  texto += `📊 Porcentaje de Ausentismo: ${totalDotacion > 0 ? ((totalAusente / totalDotacion) * 100).toFixed(1) : 0}%\n`;
+  texto += `🏷️ Estado: ${calcularEstado(totalDotacion, totalFormando)}\n\n`;
+
+  texto += `📋 DETALLE POR SECCIÓN:\n\n`;
+  secciones.forEach(seccion => {
+    const datoSeccion = datos[seccion] || {};
+    const dotacion = parseInt(datoSeccion['Dotación']) || 0;
+    const formando = parseInt(datoSeccion['Forman']) || 0;
+    const falta = parseInt(datoSeccion['Falta']) || 0;
+    const porcentaje = dotacion > 0 ? ((falta / dotacion) * 100).toFixed(1) : 0;
+    const estado = calcularEstado(dotacion, formando);
+
+    texto += `*${seccion}*\n`;
+    texto += `Dotación: ${dotacion} | Formando: ${formando} | Falta: ${falta} (${porcentaje}%)\n`;
+    texto += `Estado: ${estado}\n`;
+    texto += `Detalles: `;
+    camposCalculables.forEach(campo => {
+      const valor = parseInt(datoSeccion[campo]) || 0;
+      if (valor > 0) {
+        texto += `${campo}: ${valor} | `;
+      }
+    });
+    texto += `\n\n`;
+  });
+
+  texto += `📊 AUSENTISMO POR TIPO (Totales):\n`;
+  tiposAusencia.forEach(tipo => {
+    const total = ausentismoPorTipo[tipo];
+    if (total > 0) {
+      texto += `${tipo}: ${total}\n`;
+    }
+  });
+
+  return texto;
+}
+
+// Function to set up horizontal scrolling for tables
+function setupHorizontalScroll() {
+  const tables = document.querySelectorAll('.informe-detalle table');
+  tables.forEach(table => {
+    const container = table.closest('.informe-detalle');
+    if (container) {
+      container.style.overflowX = 'auto';
+      container.style.overflowY = 'visible';
+      container.style.WebkitOverflowScrolling = 'touch';
+      container.style.overscrollBehaviorX = 'contain';
+      container.style.touchAction = 'pan-x pan-y';
+      // Prevent vertical bounce on iOS
+      container.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 1) e.preventDefault(); // Block multi-touch zoom
+      }, { passive: false });
+    }
+    table.style.minWidth = 'fit-content';
+    table.style.width = 'auto';
+    table.style.tableLayout = 'auto';
+  });
+}
+
+// Update compartirWhatsapp function
+function compartirWhatsapp() {
+  const textoCompleto = generarTextoInforme();
+  const url = `https://wa.me/?text=${encodeURIComponent(textoCompleto)}`;
+  window.open(url, '_blank');
+}
+
 // Función para inicializar la aplicación
 document.addEventListener("DOMContentLoaded", () => {
   inicializarDatos();
@@ -629,12 +744,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const generarInformeBtn = document.getElementById('generar-informe');
   if (generarInformeBtn) {
     generarInformeBtn.addEventListener('click', function() {
-      // Mostrar el modal
       document.getElementById('modalInforme').style.display = 'block';
-      // Generar el contenido del informe
-      generarInforme();
-      // Configurar el scroll después de un pequeño retraso
-      setTimeout(setupHorizontalScroll, 100);
+      generarInforme(); // This now handles the timeout internally
+      
+      // Add scroll setup after a small delay to ensure DOM is updated
+      setTimeout(() => {
+        setupHorizontalScroll();
+      }, 300);
     });
   }
   

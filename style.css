@@ -1847,17 +1847,123 @@ details summary::-webkit-details-marker {
   border-bottom: 1px solid #f1f5f9;
 }
 
+/* Enhanced Modal Body for Better Scroll Isolation */
+.modal-body {
+  overflow-y: auto;
+  max-height: 85vh; /* Slightly reduced to account for table heights */
+  padding: 1rem;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  overscroll-behavior: contain; /* Prevent pull-to-refresh interference */
+}
+
+/* Improved Table Container for Horizontal Scroll */
+.informe-detalle {
+  margin: 1rem 0;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 8px;
+  overflow-x: auto;
+  overflow-y: visible; /* Allow vertical if needed, but prioritize horizontal */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--primary) transparent;
+  display: block; /* Ensures block-level for scroll */
+  white-space: nowrap; /* Prevents text wrap in container */
+  position: relative;
+  border: 1px solid var(--gray-300);
+  background: var(--white);
+}
+
+.informe-detalle table {
+  min-width: fit-content; /* Adaptive min-width instead of fixed 800px */
+  width: auto;
+  table-layout: auto;
+  margin: 0;
+  border-collapse: collapse;
+  border: none;
+  white-space: normal; /* Allow normal wrapping inside cells */
+}
+
+/* Sticky First Column Improvements */
+.informe-detalle th:first-child,
+.informe-detalle td:first-child {
+  min-width: 140px;
+  max-width: 140px;
+  position: sticky;
+  left: 0; /* Changed from 16px to 0 for better alignment */
+  z-index: 2;
+  background: var(--white);
+  box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
+  -webkit-box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1); /* iOS support */
+  position: -webkit-sticky;
+}
+
+/* Custom Scrollbar for Webkit Browsers */
+.informe-detalle::-webkit-scrollbar {
+  height: 6px;
+}
+
+.informe-detalle::-webkit-scrollbar-track {
+  background: var(--gray-200);
+  border-radius: 3px;
+}
+
+.informe-detalle::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 3px;
+}
+
+.informe-detalle::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .informe-contenedor {
+  .modal-body {
+    max-height: 80vh;
+    padding: 0.5rem;
+  }
+
+  .informe-detalle {
     margin: 0.5rem 0;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    -webkit-tap-highlight-color: transparent;
+    width: 100vw; /* Full viewport width for edge-to-edge scroll */
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw; /* Centers and expands beyond container */
+    overflow-y: hidden; /* Strictly hide vertical in tables */
+    touch-action: pan-x pan-y; /* Allow both directions, but horizontal primary */
+  }
+
+  .informe-detalle table {
+    min-width: 700px; /* Reduced for smaller screens, but still scrollable */
+  }
+
+  .informe-detalle th,
+  .informe-detalle td {
+    padding: 8px 4px; /* Smaller padding for mobile */
+    font-size: 0.7rem;
+    min-width: 70px; /* Ensure touch targets */
+  }
+
+  .informe-detalle th:first-child,
+  .informe-detalle td:first-child {
+    min-width: 120px; /* Slightly smaller on mobile */
+    z-index: 3; /* Higher z-index for overlap */
+  }
+
+  /* Prevent modal from capturing horizontal scroll */
+  .modal-content {
+    overflow: hidden; /* Let inner containers handle scroll */
+  }
+
+  .informe-contenedor {
+    margin: 0.5rem -16px;
+    width: 100vw;
+    max-width: 100vw;
     padding: 0 16px;
-    box-sizing: border-box;
   }
 
   .informe-resumen {
@@ -1871,21 +1977,13 @@ details summary::-webkit-details-marker {
     width: 100%;
     max-width: 100%;
     border-radius: 8px;
-    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    display: block;
-    position: relative;
     scrollbar-width: thin;
-    -ms-overflow-style: -ms-autohiding-scrollbar;
-    /* Enable touch scrolling */
+    overflow-x: auto;
+    display: block;
+    overflow-y: hidden;
+    white-space: nowrap;
     touch-action: pan-x;
-    /* Visual feedback */
-    cursor: grab;
-    /* Prevent text selection during scroll */
-    user-select: none;
-    -webkit-user-select: none;
-    /* Smooth scrolling */
-    scroll-behavior: smooth;
     position: relative;
     left: auto;
     right: auto;
@@ -1894,57 +1992,29 @@ details summary::-webkit-details-marker {
   }
   
   .informe-detalle table {
-    min-width: 100%;
+    min-width: 800px; /* Ancho mínimo para permitir el desplazamiento */
     width: auto;
-    table-layout: fixed;
-    border-collapse: separate;
+    table-layout: auto;
     margin: 0;
     border: none;
-    /* Ensure table takes full width of content */
-    white-space: nowrap;
-    /* Enable touch events */
-    pointer-events: auto;
-    /* Ensure smooth scrolling */
-    -webkit-overflow-scrolling: touch;
   }
   
   .informe-detalle th:first-child,
   .informe-detalle td:first-child {
     min-width: 140px;
     max-width: 140px;
-    position: -webkit-sticky;
     position: sticky;
-    left: 0;
+    left: 16px;
     z-index: 2;
-    background-color: #fff;
+    background: white;
     box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
-    /* Improve touch handling */
-    touch-action: pan-y;
-    /* Ensure proper stacking context */
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    /* Prevent text selection */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+    position: -webkit-sticky;
   }
   
-  .informe-detalle th,
-  .informe-detalle td {
+  .informe-detalle th {
     padding: 10px 6px;
-    font-size: 0.75rem;
-    /* Enable touch events for cells */
-    pointer-events: auto;
-    /* Ensure content is visible */
-    background-clip: padding-box;
-    /* Prevent text selection during scroll */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    font-weight: 600;
-    text-align: left;
+    font-size: 0.65rem;
+    white-space: nowrap;
   }
   
   .informe-detalle td {
@@ -2056,28 +2126,21 @@ details summary::-webkit-details-marker {
   color: #991b1b;
 }
 
-/* Print styles para el informe */
-    @media print {
-      .modal, .modal-content {
-        position: static !important;
-        width: 100% !important;
-        height: auto !important;
-        background: white !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        max-height: none !important;
-      }
-      
-      .modal-header {
-        background: #f8fafc !important;
-        color: #1e293b !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-      
-      .close, .print-btn {
-        display: none !important;
-      }
+/* Print Styles */
+@media print {
+  .informe-detalle {
+    overflow: visible !important;
+    width: auto !important;
+    position: static !important;
+    background: #f8fafc !important;
+    color: #1e293b !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .close, .print-btn {
+    display: none !important;
+  }
       
       .modal-body {
         max-height: none !important;

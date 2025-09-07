@@ -70,190 +70,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="pwa-install.js"></script>
-  <script src="script.js" type="module"></script>
-  <script src="table-scroll.js"></script>
-</body>
+  <script src="script.js"></script>
+  
   <!-- Inicialización de la aplicación -->
   <script>
-    // Mover las funciones al ámbito global temporalmente
-    window.abrirInforme = function() {
-      const modal = document.getElementById('modalInforme');
-      if (modal) modal.style.display = 'block';
-    };
-
-    window.cerrarInforme = function() {
-      const modal = document.getElementById('modalInforme');
-      if (modal) modal.style.display = 'none';
-    };
-    
-    window.exportarPDF = function() {
-      const element = document.getElementById('informeContenido');
-      if (!element || !window.jsPDF) {
-        console.error('No se pudo generar el PDF: elemento o jsPDF no disponible');
-        return;
-      }
-      
-      // Mostrar mensaje de carga
-      const loadingMessage = document.createElement('div');
-      loadingMessage.textContent = 'Generando PDF...';
-      loadingMessage.style.position = 'fixed';
-      loadingMessage.style.top = '50%';
-      loadingMessage.style.left = '50%';
-      loadingMessage.style.transform = 'translate(-50%, -50%)';
-      loadingMessage.style.padding = '20px';
-      loadingMessage.style.background = 'rgba(0,0,0,0.8)';
-      loadingMessage.style.color = 'white';
-      loadingMessage.style.borderRadius = '5px';
-      loadingMessage.style.zIndex = '1000';
-      document.body.appendChild(loadingMessage);
-      
-      // Usar html2canvas para capturar el contenido
-      html2canvas(element, {
-        scale: 2, // Mejor calidad
-        useCORS: true,
-        allowTaint: true,
-        scrollX: 0,
-        scrollY: 0
-      }).then(canvas => {
-        // Crear PDF
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new window.jsPDF({
-          orientation: 'landscape',
-          unit: 'mm'
-        });
-        
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        
-        // Guardar el PDF
-        pdf.save('informe-os9.pdf');
-        
-        // Eliminar mensaje de carga
-        document.body.removeChild(loadingMessage);
-      }).catch(error => {
-        console.error('Error al generar el PDF:', error);
-        if (document.body.contains(loadingMessage)) {
-          document.body.removeChild(loadingMessage);
-        }
-        alert('Error al generar el PDF. Por favor, inténtelo de nuevo.');
-      });
-    };
-    
-    window.compartirWhatsapp = async function() {
-      const element = document.getElementById('informeContenido');
-      if (!element) {
-        console.error('No se pudo compartir: elemento no encontrado');
-        return;
-      }
-      
-      // Mostrar mensaje de carga
-      const loadingMessage = document.createElement('div');
-      loadingMessage.textContent = 'Preparando para compartir...';
-      loadingMessage.style.position = 'fixed';
-      loadingMessage.style.top = '50%';
-      loadingMessage.style.left = '50%';
-      loadingMessage.style.transform = 'translate(-50%, -50%)';
-      loadingMessage.style.padding = '20px';
-      loadingMessage.style.background = 'rgba(0,0,0,0.8)';
-      loadingMessage.style.color = 'white';
-      loadingMessage.style.borderRadius = '5px';
-      loadingMessage.style.zIndex = '1000';
-      document.body.appendChild(loadingMessage);
-      
-      try {
-        // Obtener todos los datos del informe
-        const titulo = document.querySelector('.modal-title')?.textContent || 'Informe de Personal';
-        const fecha = new Date().toLocaleDateString('es-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-        
-        // Obtener el texto de la tabla
-        let tableText = '';
-        const rows = element.querySelectorAll('tr');
-        rows.forEach((row, rowIndex) => {
-          const cells = row.querySelectorAll('th, td');
-          const rowData = Array.from(cells).map(cell => cell.textContent.trim()).join(' | ');
-          tableText += rowData + '\n';
-          if (rowIndex === 0) {
-            tableText += '-'.repeat(50) + '\n';
-          }
-        });
-        
-        // Crear el mensaje detallado
-        const mensajeCompleto = `*${titulo}*\n` +
-                              `Fecha: ${fecha}\n\n` +
-                              '```\n' +
-                              tableText +
-                              '```\n\n' +
-                              'Informe generado desde la aplicación OS9';
-        
-        // Primero intentar con Web Share API (mejor para móviles)
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              title: titulo,
-              text: mensajeCompleto,
-              url: window.location.href
-            });
-            return;
-          } catch (err) {
-            console.log('Error al usar Web Share API:', err);
-            // Continuar con otros métodos si falla
-          }
-        }
-        
-        // Si Web Share API no está disponible, intentar con WhatsApp Web
-        const mensajeCodificado = encodeURIComponent(mensajeCompleto);
-        const urlWhatsApp = `https://wa.me/?text=${mensajeCodificado}`;
-        
-        // Usar un enlace temporal con click() para evitar bloqueos del navegador
-        const link = document.createElement('a');
-        link.href = urlWhatsApp;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-      } catch (error) {
-        console.error('Error al compartir:', error);
-        // Si todo falla, ofrecer copiar al portapapeles
-        const mensajeCompleto = document.querySelector('.informe-detalle')?.textContent || 'No se pudo generar el mensaje';
-        const confirmar = confirm('No se pudo abrir WhatsApp. ¿Desea copiar el mensaje para pegarlo manualmente?');
-        
-        if (confirmar) {
-          try {
-            await navigator.clipboard.writeText(mensajeCompleto);
-            alert('El mensaje se ha copiado al portapapeles. Péguelo en WhatsApp.');
-          } catch (err) {
-            console.error('Error al copiar al portapapeles:', err);
-            // Mostrar el mensaje en un textarea para que el usuario pueda copiarlo manualmente
-            const textarea = document.createElement('textarea');
-            textarea.value = mensajeCompleto;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = 0;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            alert('El mensaje se ha copiado al portapapeles. Péguelo en WhatsApp.');
-          }
-        }
-      } finally {
-        // Eliminar mensaje de carga
-        if (document.body.contains(loadingMessage)) {
-          document.body.removeChild(loadingMessage);
-        }
-      }
-    };
-
     document.addEventListener('DOMContentLoaded', function() {
       // Inicializar jsPDF
       try {
@@ -278,8 +98,8 @@
       const compartirWhatsappBtn = document.getElementById('compartir-whatsapp');
       
       if (resetearBtn) resetearBtn.addEventListener('click', resetear);
-      if (generarInformeBtn) generarInformeBtn.addEventListener('click', window.abrirInforme);
-      if (cerrarModalBtn) cerrarModalBtn.addEventListener('click', window.cerrarInforme);
+      if (generarInformeBtn) generarInformeBtn.addEventListener('click', abrirInforme);
+      if (cerrarModalBtn) cerrarModalBtn.addEventListener('click', cerrarInforme);
       if (exportarPdfBtn) exportarPdfBtn.addEventListener('click', exportarPDF);
       if (compartirWhatsappBtn) compartirWhatsappBtn.addEventListener('click', compartirWhatsapp);
       
@@ -288,7 +108,7 @@
       if (modal) {
         window.addEventListener('click', (event) => {
           if (event.target === modal) {
-            window.cerrarInforme();
+            cerrarInforme();
           }
         });
       }
