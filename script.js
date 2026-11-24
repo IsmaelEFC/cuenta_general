@@ -63,8 +63,18 @@ function guardar(seccion, columna, valor) {
   const numValor = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed;
 
   if (columna === 'Dotación') {
-    datos[seccion][columna] = numValor;
     const forman = parseInt(datos[seccion]['Forman']) || 0;
+    const valorAnterior = parseInt(datos[seccion]?.['Dotación']) || 0;
+    if (numValor < forman) {
+      alert(`La dotación no puede ser menor que el personal formando actual (${forman}). Ajuste primero el personal formando.`);
+      const input = document.querySelector(`input[data-seccion="${seccion}"][data-columna="${columna}"]`);
+      if (input) {
+        input.value = valorAnterior;
+        feedbackError(input);
+      }
+      return;
+    }
+    datos[seccion][columna] = numValor;
     const falta = Math.max(0, numValor - forman);
     datos[seccion]['Falta'] = falta;
 
@@ -80,8 +90,18 @@ function guardar(seccion, columna, valor) {
     actualizarDesglose(seccion);
     actualizarEstadoDesglose(seccion);
   } else if (columna === 'Forman') {
-    datos[seccion][columna] = numValor;
     const dotacion = parseInt(datos[seccion]['Dotación']) || 0;
+    const valorAnterior = parseInt(datos[seccion]?.['Forman']) || 0;
+    if (numValor > dotacion) {
+      alert(`El personal formando no puede superar la dotación (${dotacion}).`);
+      const input = document.querySelector(`input[data-seccion="${seccion}"][data-columna="${columna}"]`);
+      if (input) {
+        input.value = valorAnterior;
+        feedbackError(input);
+      }
+      return;
+    }
+    datos[seccion][columna] = numValor;
     const falta = Math.max(0, dotacion - numValor);
     datos[seccion]['Falta'] = falta;
 
