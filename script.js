@@ -77,6 +77,7 @@ function guardar(seccion, columna, valor) {
     localStorage.setItem("cuentaDiaria", JSON.stringify(datos));
     actualizarTotalSeccion(seccion);
     actualizarTotalGeneral();
+    actualizarDesglose(seccion);
   } else if (columna === 'Forman') {
     datos[seccion][columna] = numValor;
     const dotacion = parseInt(datos[seccion]['Dotación']) || 0;
@@ -92,11 +93,22 @@ function guardar(seccion, columna, valor) {
     localStorage.setItem("cuentaDiaria", JSON.stringify(datos));
     actualizarTotalSeccion(seccion);
     actualizarTotalGeneral();
+    actualizarDesglose(seccion);
   } else {
-    datos[seccion][columna] = numValor;
+    // Validar que el desglose no supere la Falta calculada
+    const falta = parseInt(datos[seccion]['Falta']) || 0;
+    const sumaOtros = camposCalculables
+      .filter(c => c !== columna)
+      .reduce((acc, c) => acc + (parseInt(datos[seccion]?.[c]) || 0), 0);
+    let valorFinal = numValor;
+    if (sumaOtros + valorFinal > falta) {
+      valorFinal = Math.max(0, falta - sumaOtros);
+    }
+    datos[seccion][columna] = valorFinal;
     const input = document.querySelector(`input[data-seccion="${seccion}"][data-columna="${columna}"]`);
-    if (input) input.value = numValor;
+    if (input) input.value = valorFinal;
     localStorage.setItem("cuentaDiaria", JSON.stringify(datos));
+    actualizarDesglose(seccion);
   }
 }
 
@@ -128,6 +140,23 @@ function actualizarTotales() {
   actualizarTotalGeneral();
 }
 
+function sumaAdicionales(seccion) {
+  if (!datos[seccion]) return 0;
+  return camposCalculables.reduce((acc, c) => acc + (parseInt(datos[seccion]?.[c]) || 0), 0);
+}
+
+function actualizarDesglose(seccion) {
+  const suma = sumaAdicionales(seccion);
+  const falta = parseInt(datos[seccion]?.['Falta']) || 0;
+  const el = document.getElementById(`desglose-${seccion}`);
+  const elF = document.getElementById(`falta-desglose-${seccion}`);
+  if (el) el.textContent = suma;
+  if (elF) elF.textContent = falta;
+  if (el) {
+    el.style.color = (suma === falta && falta > 0) ? '#059669' : (suma > falta ? '#dc2626' : '#1f2937');
+  }
+}
+
 function resetear() {
   if (confirm("¿Seguro que deseas borrar todos los datos del día actual?")) {
     datos = {};
@@ -154,6 +183,7 @@ function resetear() {
       elementoTotal.innerText = 0;
     }
     actualizarFecha();
+    secciones.forEach(sec => actualizarDesglose(sec));
     alert("✅ Datos reiniciados correctamente");
   }
 }
@@ -814,6 +844,14 @@ document.addEventListener("DOMContentLoaded", () => {
     crearInputs(sec, extras, extraGrid);
 
     extraContent.appendChild(extraGrid);
+
+    const desgloseDiv = document.createElement("div");
+    desgloseDiv.style.marginTop = "0.75rem";
+    desgloseDiv.style.fontSize = "0.9rem";
+    desgloseDiv.style.color = "#1f2937";
+    desgloseDiv.innerHTML = `Desglose faltantes: <strong id="desglose-${sec}">0</strong> / Falta: <strong id="falta-desglose-${sec}">0</strong>`;
+    extraContent.appendChild(desgloseDiv);
+
     details.appendChild(extraContent);
     card.appendChild(details);
 
@@ -826,6 +864,7 @@ document.addEventListener("DOMContentLoaded", () => {
     contenedor.appendChild(card);
   });
   actualizarTotales();
+  secciones.forEach(sec => actualizarDesglose(sec));
 
   // Configurar el botón de reporte
   const reportBtn = document.querySelector('.report-btn');
