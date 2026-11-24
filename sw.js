@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cuenta-os9-v15';
+const CACHE_NAME = 'cuenta-os9-v16';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -48,7 +48,7 @@ self.addEventListener('fetch', event => {
   if (!(event.request.url.indexOf('http') === 0)) return;
 
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: 'no-store' })
       .then(response => {
         // Cachear respuestas válidas para uso offline
         if (response && response.status === 200) {
