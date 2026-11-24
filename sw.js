@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cuenta-os9-v12';
+const CACHE_NAME = 'cuenta-os9-v13';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -13,8 +13,8 @@ const ASSETS_TO_CACHE = [
 
 // Install event - caching the application shell
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Hace que el nuevo service worker se active inmediatamente
-  
+  self.skipWaiting(); // Activa el nuevo SW inmediatamente
+
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -43,38 +43,25 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch event - serve from cache, falling back to network
+// Fetch event - network first, falling back to cache
 self.addEventListener('fetch', event => {
   if (!(event.request.url.indexOf('http') === 0)) return;
-  
+
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        // Return cached response if found
-        if (response) {
-          return response;
-        }
-        
-        // Clone the request
-        const fetchRequest = event.request.clone();
-        
-        // Make network request and cache the response
-        return fetch(fetchRequest).then(response => {
-          // Check if we received a valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-          
-          // Clone the response
+        // Cachear respuestas válidas para uso offline
+        if (response && response.status === 200) {
           const responseToCache = response.clone();
-          
-          caches.open(CACHE_NAME)
-            .then(cache => {
-              cache.put(event.request, responseToCache);
-            });
-            
-          return response;
-        });
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Sin conexión: servir desde caché
+        return caches.match(event.request);
       })
   );
 });
