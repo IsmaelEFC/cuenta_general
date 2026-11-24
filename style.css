@@ -2238,3 +2238,8 @@ body { font-size: 1rem; line-height: 1.7; }
 .close { width: 44px !important; height: 44px !important; font-size: 1.8rem !important; }
 *:focus-visible { outline: 3px solid #006341 !important; outline-offset: 2px !important; }
 @media (max-width: 768px) { html { font-size: 16px; } .input-control { width: 64px !important; height: 64px !important; font-size: 1.2rem !important; } .input-label { font-size: 0.85rem !important; } }
+
+.input-control:disabled { background: #e5e7eb !important; color: #9ca3af !important; cursor: not-allowed !important; }
+
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 50%{transform:translateX(6px)} 75%{transform:translateX(-6px)} }
+.shake { animation: shake 0.35s; }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cuenta-os9-v13';
+const CACHE_NAME = 'cuenta-os9-v14';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
