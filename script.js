@@ -59,7 +59,8 @@ function inicializarDatos() {
 function guardar(seccion, columna, valor) {
   if (!datos[seccion]) datos[seccion] = {};
 
-  const numValor = parseInt(valor) || 0;
+  const parsed = parseInt(valor, 10);
+  const numValor = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed;
 
   if (columna === 'Dotación') {
     datos[seccion][columna] = numValor;
@@ -69,6 +70,9 @@ function guardar(seccion, columna, valor) {
 
     const faltaInput = document.querySelector(`input[data-seccion="${seccion}"][data-columna="Falta"]`);
     if (faltaInput) faltaInput.value = falta;
+
+    const input = document.querySelector(`input[data-seccion="${seccion}"][data-columna="${columna}"]`);
+    if (input) input.value = numValor;
 
     localStorage.setItem("cuentaDiaria", JSON.stringify(datos));
     actualizarTotalSeccion(seccion);
@@ -82,11 +86,16 @@ function guardar(seccion, columna, valor) {
     const faltaInput = document.querySelector(`input[data-seccion="${seccion}"][data-columna="Falta"]`);
     if (faltaInput) faltaInput.value = falta;
 
+    const input = document.querySelector(`input[data-seccion="${seccion}"][data-columna="${columna}"]`);
+    if (input) input.value = numValor;
+
     localStorage.setItem("cuentaDiaria", JSON.stringify(datos));
     actualizarTotalSeccion(seccion);
     actualizarTotalGeneral();
   } else {
     datos[seccion][columna] = numValor;
+    const input = document.querySelector(`input[data-seccion="${seccion}"][data-columna="${columna}"]`);
+    if (input) input.value = numValor;
     localStorage.setItem("cuentaDiaria", JSON.stringify(datos));
   }
 }
@@ -132,8 +141,8 @@ function resetear() {
     const inputs = document.querySelectorAll('.input-control');
     inputs.forEach(input => {
       input.value = '';
-      input.value = 0;
     });
+    actualizarTotales();
     secciones.forEach(seccion => {
       const spanTotal = document.getElementById(`total-${seccion}`);
       if (spanTotal) {
@@ -152,7 +161,7 @@ function resetear() {
 function crearInput(seccion, columna) {
   const div = document.createElement("div");
   div.className = "input-field";
-  const valor = datos[seccion]?.[columna] || '';
+  const valor = datos[seccion]?.[columna] ?? '';
   const esCalculado = columna === 'Falta';
   const readonlyAttr = esCalculado ? 'readonly' : '';
   const readonlyClass = esCalculado ? 'readonly' : '';
@@ -161,6 +170,8 @@ function crearInput(seccion, columna) {
     <input type="number" 
            inputmode="numeric" 
            pattern="[0-9]*"
+           min="0"
+           step="1"
            data-seccion="${seccion}"
            data-columna="${columna}"
            class="input-control ${readonlyClass}"
@@ -486,7 +497,7 @@ function exportarPDF() {
       windowHeight: Math.min(contentHeight, maxHeight / scale),
       scrollX: 0,
       scrollY: 0,
-      logging: true
+      logging: false
     }).then(canvas => {
       const imgData = canvas.toDataURL('image/jpeg', 0.9);
       // Usar tamaño de papel oficio (Legal) en lugar de A4
@@ -565,21 +576,6 @@ function exportarPDF() {
   }, 100);
 }
 
-// Nueva función para compartir por WhatsApp
-function compartirWhatsapp() {
-  const totalFormando = document.getElementById('totalGeneral').innerText;
-  const fecha = document.getElementById('fechaInforme').innerText;
-  const resumen = `
-📊 Reporte de Personal OS9
-🗓️ ${fecha}
-👥 Total de personal formando: ${totalFormando}
-
-*Puedes generar un informe detallado en la aplicación.*
-  `;
-  
-  const url = `https://wa.me/?text=${encodeURIComponent(resumen)}`;
-  window.open(url, '_blank');
-}
 
 function crearTabla(seccion, contenedor, titulo, columns) {
   const table = document.createElement("table");
@@ -595,7 +591,7 @@ function crearTabla(seccion, contenedor, titulo, columns) {
           <td><input type="number" 
                    data-seccion="${seccion}"
                    data-columna="${col}"
-                   value="${datos[seccion]?.[col] || ''}" 
+                   value="${datos[seccion]?.[col] ?? ''}" 
                    onchange="guardar('${seccion}','${col}',this.value)" /></td>
         `).join('')}
       </tr>
@@ -604,21 +600,6 @@ function crearTabla(seccion, contenedor, titulo, columns) {
   contenedor.appendChild(table);
 }
 
-// Función para configurar el scroll horizontal de las tablas
-function setupHorizontalScroll() {
-  const tables = document.querySelectorAll('.informe-detalle table');
-  tables.forEach(table => {
-    const container = table.closest('.informe-detalle');
-    if (container) {
-      container.style.overflowX = 'auto';
-      container.style.WebkitOverflowScrolling = 'touch';
-      container.style.overscrollBehaviorX = 'contain';
-    }
-    table.style.minWidth = '100%';
-    table.style.width = 'auto';
-    table.style.tableLayout = 'auto';
-  });
-}
 
 // Helper function to calculate status based on dotacion and formando
 function calcularEstado(dotacion, formando) {
@@ -708,21 +689,35 @@ function generarTextoInforme() {
 
 // Function to set up horizontal scrolling for tables
 function setupHorizontalScroll() {
-  const tables = document.querySelectorAll('.informe-detalle table');
-  tables.forEach(table => {
-    const container = table.closest('.informe-detalle');
-    if (container) {
-      container.style.overflowX = 'auto';
-      container.style.overflowY = 'visible';
-      container.style.WebkitOverflowScrolling = 'touch';
-      container.style.overscrollBehaviorX = 'contain';
-      container.style.touchAction = 'pan-x pan-y';
-      // Prevent vertical bounce on iOS
-      container.addEventListener('touchmove', (e) => {
-        if (e.touches.length > 1) e.preventDefault(); // Block multi-touch zoom
+  const containers = document.querySelectorAll('.informe-detalle');
+  containers.forEach(container => {
+    container.style.overflowX = 'auto';
+    container.style.overflowY = 'hidden';
+    container.style.WebkitOverflowScrolling = 'touch';
+    container.style.overscrollBehaviorX = 'contain';
+    container.style.touchAction = 'pan-x pan-y';
+
+    // Evitar que la rueda vertical sobre la tabla bloquee el scroll de la página/modal
+    if (!container.dataset.wheelBound) {
+      container.dataset.wheelBound = 'true';
+      container.addEventListener('wheel', (e) => {
+        const parent = container.closest('.modal-body') || document.scrollingElement || document.documentElement;
+        if (e.shiftKey) {
+          e.preventDefault();
+          container.scrollLeft += e.deltaY;
+        } else if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+          e.preventDefault();
+          container.scrollLeft += e.deltaX;
+        } else {
+          e.preventDefault();
+          parent.scrollBy({ top: e.deltaY, left: 0, behavior: 'auto' });
+        }
       }, { passive: false });
     }
-    table.style.minWidth = 'fit-content';
+  });
+  const tables = document.querySelectorAll('.informe-detalle table');
+  tables.forEach(table => {
+    table.style.minWidth = 'max-content';
     table.style.width = 'auto';
     table.style.tableLayout = 'auto';
   });
@@ -733,6 +728,15 @@ function compartirWhatsapp() {
   const textoCompleto = generarTextoInforme();
   const url = `https://wa.me/?text=${encodeURIComponent(textoCompleto)}`;
   window.open(url, '_blank');
+}
+
+// Registrar Service Worker para soporte offline/PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(error => {
+      console.error('Error al registrar el Service Worker:', error);
+    });
+  });
 }
 
 // Función para inicializar la aplicación

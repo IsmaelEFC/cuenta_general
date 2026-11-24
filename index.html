@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#006341" />
   <meta name="description" content="Aplicación para el control de personal del Departamento de Investigación de Organizaciones Criminales" />
+  <title>Cuenta General OS9</title>
   <!-- PWA Meta Tags -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,6 +22,9 @@
     <div class="container">
       <div class="logo"><img src="./icons/os9.png" alt="OS9 Logo" class="logo-img"></div>
       <h1>Cuenta General</h1>
+      <button id="installButton" class="install-button" style="display:none;" aria-label="Instalar aplicación">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      </button>
     </div>
   </header>
 
@@ -90,28 +94,7 @@
         console.error('Error al inicializar jsPDF:', error);
       }
       
-      // Configurar event listeners
-      const resetearBtn = document.getElementById('resetear');
-      const generarInformeBtn = document.getElementById('generar-informe');
-      const cerrarModalBtn = document.querySelector('.close');
-      const exportarPdfBtn = document.getElementById('exportar-pdf');
-      const compartirWhatsappBtn = document.getElementById('compartir-whatsapp');
-      
-      if (resetearBtn) resetearBtn.addEventListener('click', resetear);
-      if (generarInformeBtn) generarInformeBtn.addEventListener('click', abrirInforme);
-      if (cerrarModalBtn) cerrarModalBtn.addEventListener('click', cerrarInforme);
-      if (exportarPdfBtn) exportarPdfBtn.addEventListener('click', exportarPDF);
-      if (compartirWhatsappBtn) compartirWhatsappBtn.addEventListener('click', compartirWhatsapp);
-      
-      // Cerrar modal al hacer clic fuera del contenido
-      const modal = document.getElementById('modalInforme');
-      if (modal) {
-        window.addEventListener('click', (event) => {
-          if (event.target === modal) {
-            cerrarInforme();
-          }
-        });
-      }
+      // Los event listeners se configuran en script.js para evitar duplicados
     });
   </script>
 </body>
